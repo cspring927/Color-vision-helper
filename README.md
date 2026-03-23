@@ -19,7 +19,7 @@ A Chrome extension that helps people with color vision deficiency (color blindne
 | 红色盲 | Protanopia | 缺少红色感受器 |
 | 绿色盲 | Deuteranopia | 缺少绿色感受器 |
 | 红色弱 | Protanomaly | 红色感受器异常 |
-| 绿色弱 | Deuteranomaly | 绿色感受器异常（最常见） |
+| 绿色弱 | Deuteranomaly | 绿色感受器异常 |
 | 蓝黄色盲 | Tritanopia | 缺少蓝色感受器 |
 | 蓝黄色弱 | Tritanomaly | 蓝色感受器异常 |
 | 全色盲 | Achromatopsia | 无法感知颜色 |
@@ -28,7 +28,7 @@ A Chrome extension that helps people with color vision deficiency (color blindne
 
 ### 开发者模式加载（开发/测试用）
 
-1. 下载或 `git clone` 本仓库
+1. 下载ZIP 或 `git clone` 本仓库
 2. 打开 Chrome，地址栏输入 `chrome://extensions`
 3. 开启右上角「开发者模式」
 4. 点击「加载已解压的扩展程序」
