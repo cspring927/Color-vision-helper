@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Color Vision Helper</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="container">
+    <!-- 顶部标题 -->
+    <header class="header">
+      <div class="logo">
+        <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+          <circle cx="10" cy="12" r="8" fill="#E85D50" opacity="0.7"/>
+          <circle cx="18" cy="12" r="8" fill="#4CAF50" opacity="0.7"/>
+          <circle cx="14" cy="18" r="8" fill="#2196F3" opacity="0.7"/>
+        </svg>
+      </div>
+      <div class="header-text">
+        <h1 data-i18n="appTitle">色觉辅助</h1>
+        <p class="subtitle">Color Vision Helper</p>
+      </div>
+      <!-- 语言切换 -->
+      <button class="lang-btn" id="lang-btn" title="Switch language">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+          <circle cx="8" cy="8" r="7" stroke="currentColor" stroke-width="1.2"/>
+          <ellipse cx="8" cy="8" rx="3.5" ry="7" stroke="currentColor" stroke-width="1"/>
+          <line x1="1" y1="8" x2="15" y2="8" stroke="currentColor" stroke-width="0.8"/>
+          <line x1="2.5" y1="4.5" x2="13.5" y2="4.5" stroke="currentColor" stroke-width="0.6"/>
+          <line x1="2.5" y1="11.5" x2="13.5" y2="11.5" stroke="currentColor" stroke-width="0.6"/>
+        </svg>
+        <span id="lang-label">中文</span>
+      </button>
+      <!-- 语言菜单 -->
+      <div class="lang-menu" id="lang-menu">
+        <button class="lang-option" data-lang="zh">中文</button>
+        <button class="lang-option" data-lang="en">English</button>
+        <button class="lang-option" data-lang="fr">Français</button>
+        <button class="lang-option" data-lang="es">Español</button>
+        <button class="lang-option" data-lang="ru">Русский</button>
+        <button class="lang-option" data-lang="ar">العربية</button>
+      </div>
+      <!-- 总开关 -->
+      <label class="toggle">
+        <input type="checkbox" id="main-toggle">
+        <span class="toggle-slider"></span>
+      </label>
+    </header>
+
+    <!-- 在线测试提示 -->
+    <p class="test-hint">
+      <span data-i18n="testHint">不确定自己的类型？</span>
+      <a href="https://www.color-blindness.com/coblis-color-blindness-simulator/" target="_blank" data-i18n="testLink">在线色觉测试 →</a>
+    </p>
+
+    <!-- 色盲类型选择 -->
+    <section class="section">
+      <div class="section-title-row">
+        <h2 class="section-title" data-i18n="selectType">选择类型</h2>
+        <button class="expand-btn" id="expand-types">
+          <span id="expand-label" data-i18n="expand">展开</span> ▾
+        </button>
+      </div>
+      <div class="type-grid collapsed" id="type-grid">
+        <button class="type-btn" data-type="protanopia">
+          <span class="type-dot" style="background: #E85D50;"></span>
+          <span class="type-label" data-i18n="protanopia">红色盲</span>
+        </button>
+        <button class="type-btn" data-type="deuteranopia">
+          <span class="type-dot" style="background: #4CAF50;"></span>
+          <span class="type-label" data-i18n="deuteranopia">绿色盲</span>
+        </button>
+        <button class="type-btn" data-type="protanomaly">
+          <span class="type-dot" style="background: #FF8A80;"></span>
+          <span class="type-label" data-i18n="protanomaly">红色弱</span>
+        </button>
+        <button class="type-btn" data-type="deuteranomaly">
+          <span class="type-dot" style="background: #81C784;"></span>
+          <span class="type-label" data-i18n="deuteranomaly">绿色弱</span>
+        </button>
+        <button class="type-btn" data-type="tritanopia">
+          <span class="type-dot" style="background: #2196F3;"></span>
+          <span class="type-label" data-i18n="tritanopia">蓝黄色盲</span>
+        </button>
+        <button class="type-btn" data-type="tritanomaly">
+          <span class="type-dot" style="background: #64B5F6;"></span>
+          <span class="type-label" data-i18n="tritanomaly">蓝黄色弱</span>
+        </button>
+        <button class="type-btn full-width" data-type="achromatopsia">
+          <span class="type-dot" style="background: #9E9E9E;"></span>
+          <span class="type-label" data-i18n="achromatopsia">全色盲</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- 强度调节 -->
+    <section class="section">
+      <div class="slider-header">
+        <h2 class="section-title" data-i18n="intensity">校正强度</h2>
+        <span class="intensity-value" id="intensity-display">80%</span>
+      </div>
+      <input type="range" id="intensity-slider" class="slider" min="0" max="100" value="80">
+      <div class="slider-labels">
+        <span data-i18n="slight">轻微</span>
+        <span data-i18n="strong">强烈</span>
+      </div>
+    </section>
+
+    <!-- 颜色预览 -->
+    <section class="section">
+      <h2 class="section-title" data-i18n="colorPreview">颜色预览</h2>
+      <div class="preview-bar">
+        <div class="preview-color" style="background:#FF0000;" data-color-key="red">
+          <span class="color-label" data-i18n="red">红</span>
+        </div>
+        <div class="preview-color" style="background:#FF8800;" data-color-key="orange">
+          <span class="color-label" data-i18n="orange">橙</span>
+        </div>
+        <div class="preview-color" style="background:#FFFF00;" data-color-key="yellow">
+          <span class="color-label" style="color:#665500;" data-i18n="yellow">黄</span>
+        </div>
+        <div class="preview-color" style="background:#00CC00;" data-color-key="green">
+          <span class="color-label" data-i18n="green">绿</span>
+        </div>
+        <div class="preview-color" style="background:#0088FF;" data-color-key="blue">
+          <span class="color-label" data-i18n="blue">蓝</span>
+        </div>
+        <div class="preview-color" style="background:#8800FF;" data-color-key="purple">
+          <span class="color-label" data-i18n="purple">紫</span>
+        </div>
+      </div>
+      <p class="preview-hint" data-i18n="previewHint">开启后这些颜色在网页上会更容易区分</p>
+    </section>
+
+    <!-- 底部 -->
+    <footer class="footer">
+      <span>v1.0.0</span>
+      <a href="https://github.com" target="_blank" id="github-link">GitHub</a>
+    </footer>
+  </div>
+
+  <script src="i18n.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>
