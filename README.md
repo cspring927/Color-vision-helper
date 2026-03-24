@@ -15,6 +15,7 @@
 ### 功能
 
 - **7 种色觉类型支持** — 红色盲、绿色盲、红色弱、绿色弱、蓝黄色盲、蓝黄色弱、全色盲
+- **双模式切换** — 校正模式帮助色盲用户区分颜色，模拟模式让正常人体验色盲视角
 - **强度可调** — 0–100% 滑块，适配不同程度的色觉异常
 - **6 种语言** — 中文、English、Français、Español、Русский、العربية
 - **实时生效** — 即开即用，无需刷新页面
@@ -50,7 +51,7 @@
 
 ### 工作原理
 
-插件通过 SVG `feColorMatrix` 滤镜对页面颜色进行矩阵变换。不同类型的色觉异常使用不同的校正矩阵，将难以区分的颜色重新映射到用户可以感知的色域范围内。强度滑块通过在单位矩阵和校正矩阵之间做线性插值，实现平滑过渡。
+插件通过 SVG `feColorMatrix` 滤镜对页面颜色进行矩阵变换。校正模式将难以区分的颜色重新映射到用户可以感知的色域范围内；模拟模式则相反，基于 Brettel/Viénot 算法将正常色域压缩到色盲用户的感知范围，让正常人体验色盲视角。强度滑块通过在单位矩阵和目标矩阵之间做线性插值，实现平滑过渡。
 
 ### 技术栈
 
@@ -74,6 +75,7 @@ A Chrome extension that helps people with color vision deficiency browse the web
 ### Features
 
 - **7 color vision types** — Protanopia, Deuteranopia, Protanomaly, Deuteranomaly, Tritanopia, Tritanomaly, Achromatopsia
+- **Dual mode** — Correction mode helps color blind users distinguish colors; Simulation mode lets normal-sighted users experience color blindness
 - **Adjustable intensity** — 0–100% slider to match different severity levels
 - **6 languages** — 中文, English, Français, Español, Русский, العربية
 - **Real-time correction** — Works instantly, no page refresh needed
@@ -109,7 +111,7 @@ A Chrome extension that helps people with color vision deficiency browse the web
 
 ### How It Works
 
-The extension applies SVG `feColorMatrix` filters to remap page colors into ranges that are distinguishable for users with specific color vision deficiencies. The intensity slider linearly interpolates between the identity matrix (original colors) and the correction matrix for smooth adjustment.
+The extension applies SVG `feColorMatrix` filters to transform page colors. In Correction mode, colors are remapped into ranges that color blind users can distinguish. In Simulation mode, Brettel/Viénot algorithm matrices compress the normal color gamut to simulate what color blind users actually see. The intensity slider linearly interpolates between the identity matrix and the target matrix for smooth adjustment.
 
 ### Tech Stack
 

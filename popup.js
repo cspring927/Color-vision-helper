@@ -13,24 +13,28 @@ document.addEventListener("DOMContentLoaded", () => {
   const langBtn = document.getElementById("lang-btn");
   const langMenu = document.getElementById("lang-menu");
   const langOptions = document.querySelectorAll(".lang-option");
+  const modeTabs = document.querySelectorAll(".mode-tab");
+  const modeDesc = document.getElementById("mode-desc");
 
   let currentType = "deuteranopia";
   let currentIntensity = 80;
   let enabled = false;
   let gridExpanded = false;
   let currentLang = "zh";
+  let currentMode = "correction";
 
   // ============================================================
   // 初始化
   // ============================================================
   chrome.storage.local.get(
-    ["filterType", "intensity", "enabled", "gridExpanded", "lang"],
+    ["filterType", "intensity", "enabled", "gridExpanded", "lang", "mode"],
     (data) => {
       if (data.filterType) currentType = data.filterType;
       if (data.intensity !== undefined) currentIntensity = data.intensity;
       if (data.enabled !== undefined) enabled = data.enabled;
       if (data.gridExpanded !== undefined) gridExpanded = data.gridExpanded;
       if (data.lang) currentLang = data.lang;
+      if (data.mode) currentMode = data.mode;
 
       mainToggle.checked = enabled;
       intensitySlider.value = currentIntensity;
@@ -38,6 +42,7 @@ document.addEventListener("DOMContentLoaded", () => {
       updateActiveButton(currentType);
       updateDisabledState();
       updateGridState();
+      updateModeUI();
       applyLanguage(currentLang);
     }
   );
@@ -52,6 +57,17 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   // ============================================================
+  // 模式切换
+  // ============================================================
+  modeTabs.forEach((tab) => {
+    tab.addEventListener("click", () => {
+      currentMode = tab.dataset.mode;
+      updateModeUI();
+      saveAndApply();
+    });
+  });
+
+  // ============================================================
   // 语言切换
   // ============================================================
   langBtn.addEventListener("click", (e) => {
@@ -59,7 +75,6 @@ document.addEventListener("DOMContentLoaded", () => {
     langMenu.classList.toggle("open");
   });
 
-  // 点击菜单外部关闭
   document.addEventListener("click", (e) => {
     if (!langMenu.contains(e.target) && e.target !== langBtn) {
       langMenu.classList.remove("open");
@@ -71,7 +86,8 @@ document.addEventListener("DOMContentLoaded", () => {
       currentLang = btn.dataset.lang;
       applyLanguage(currentLang);
       langMenu.classList.remove("open");
-      updateGridState(); // 刷新展开/收起文字
+      updateGridState();
+      updateModeDesc();
       chrome.storage.local.set({ lang: currentLang });
     });
   });
@@ -135,17 +151,33 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
+  function updateModeUI() {
+    modeTabs.forEach((tab) => {
+      tab.classList.toggle("active", tab.dataset.mode === currentMode);
+    });
+    updateModeDesc();
+    chrome.storage.local.set({ mode: currentMode });
+  }
+
+  function updateModeDesc() {
+    const strings = I18N[currentLang] || I18N.zh;
+    const key = (currentMode === "simulation") ? "simulationDesc" : "correctionDesc";
+    modeDesc.textContent = strings[key];
+    modeDesc.setAttribute("data-i18n", key);
+  }
+
   function saveAndApply() {
     chrome.storage.local.set({
       filterType: currentType,
       intensity: currentIntensity,
       enabled: enabled,
+      mode: currentMode,
     });
 
     chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
       if (!tabs[0]) return;
       const message = enabled
-        ? { action: "applyFilter", type: currentType, intensity: currentIntensity }
+        ? { action: "applyFilter", type: currentType, intensity: currentIntensity, mode: currentMode }
         : { action: "removeFilter" };
       chrome.tabs.sendMessage(tabs[0].id, message).catch(() => {});
     });

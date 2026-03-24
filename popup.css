@@ -195,6 +195,59 @@ body {
   margin-bottom: 8px;
 }
 
+/* Mode tabs
+   ------------------------------------------------------------ */
+.mode-tabs {
+  display: flex;
+  gap: 6px;
+  background: #f0f0f0;
+  border-radius: 10px;
+  padding: 3px;
+}
+
+.mode-tab {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding: 8px 10px;
+  border: none;
+  border-radius: 8px;
+  background: none;
+  font-size: 12px;
+  font-weight: 500;
+  color: #888;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.mode-tab:hover {
+  color: #555;
+}
+
+.mode-tab.active {
+  background: #fff;
+  color: #1a1a1a;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+}
+
+.mode-tab.active[data-mode="simulation"] {
+  background: #fff3e0;
+  color: #e65100;
+}
+
+.mode-icon {
+  font-size: 14px;
+}
+
+.mode-desc {
+  font-size: 11px;
+  color: #aaa;
+  text-align: center;
+  margin-top: 6px;
+}
+
 /* Type grid
    ------------------------------------------------------------ */
 .type-grid {

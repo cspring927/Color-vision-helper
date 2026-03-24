@@ -1,96 +1,106 @@
 /**
  * Color Vision Helper - Content Script
  * 
- * 使用 SVG 滤镜对网页颜色进行校正，帮助色盲/色弱用户区分颜色。
- * 
- * 原理：通过 CSS filter 引用 SVG feColorMatrix，
- * 对整个页面的颜色进行矩阵变换。
- * 不同的色盲类型使用不同的校正矩阵。
+ * 两种模式：
+ * 1. 校正模式 (correction) — 帮助色盲用户区分颜色
+ * 2. 模拟模式 (simulation) — 让正常人体验色盲视角
  */
 
 // ============================================================
-// 色彩校正矩阵
-// 基于 Brettel/Viénot 算法的简化版本
-// 每个矩阵将难以区分的颜色映射到更容易区分的色域
+// 校正矩阵 — 重映射颜色，让色盲用户更容易区分
 // ============================================================
 const CORRECTION_MATRICES = {
-  // 红色盲 (Protanopia) - 缺少红色感受器
-  // 将红色信息增强并偏移到可感知的通道
-  protanopia: {
-    name: "红色盲 (Protanopia)",
-    matrix: [
-      0.567, 0.433, 0,     0, 0,
-      0.558, 0.442, 0,     0, 0,
-      0,     0.242, 0.758, 0, 0,
-      0,     0,     0,     1, 0
-    ]
-  },
+  protanopia: [
+    0.567, 0.433, 0,     0, 0,
+    0.558, 0.442, 0,     0, 0,
+    0,     0.242, 0.758, 0, 0,
+    0,     0,     0,     1, 0
+  ],
+  deuteranopia: [
+    0.625, 0.375, 0,   0, 0,
+    0.7,   0.3,   0,   0, 0,
+    0,     0.3,   0.7, 0, 0,
+    0,     0,     0,   1, 0
+  ],
+  protanomaly: [
+    0.817, 0.183, 0,     0, 0,
+    0.333, 0.667, 0,     0, 0,
+    0,     0.125, 0.875, 0, 0,
+    0,     0,     0,     1, 0
+  ],
+  deuteranomaly: [
+    0.8,   0.2,   0,     0, 0,
+    0.258, 0.742, 0,     0, 0,
+    0,     0.142, 0.858, 0, 0,
+    0,     0,     0,     1, 0
+  ],
+  tritanopia: [
+    0.95, 0.05,  0,     0, 0,
+    0,    0.433, 0.567, 0, 0,
+    0,    0.475, 0.525, 0, 0,
+    0,    0,     0,     1, 0
+  ],
+  tritanomaly: [
+    0.967, 0.033, 0,     0, 0,
+    0,     0.733, 0.267, 0, 0,
+    0,     0.183, 0.817, 0, 0,
+    0,     0,     0,     1, 0
+  ],
+  achromatopsia: [
+    0.299, 0.587, 0.114, 0, 0,
+    0.299, 0.587, 0.114, 0, 0,
+    0.299, 0.587, 0.114, 0, 0,
+    0,     0,     0,     1, 0
+  ]
+};
 
-  // 绿色盲 (Deuteranopia) - 缺少绿色感受器
-  deuteranopia: {
-    name: "绿色盲 (Deuteranopia)",
-    matrix: [
-      0.625, 0.375, 0,   0, 0,
-      0.7,   0.3,   0,   0, 0,
-      0,     0.3,   0.7, 0, 0,
-      0,     0,     0,   1, 0
-    ]
-  },
-
-  // 红色弱 (Protanomaly) - 红色感受器异常
-  protanomaly: {
-    name: "红色弱 (Protanomaly)",
-    matrix: [
-      0.817, 0.183, 0,     0, 0,
-      0.333, 0.667, 0,     0, 0,
-      0,     0.125, 0.875, 0, 0,
-      0,     0,     0,     1, 0
-    ]
-  },
-
-  // 绿色弱 (Deuteranomaly) - 绿色感受器异常（最常见）
-  deuteranomaly: {
-    name: "绿色弱 (Deuteranomaly)",
-    matrix: [
-      0.8,   0.2,   0,     0, 0,
-      0.258, 0.742, 0,     0, 0,
-      0,     0.142, 0.858, 0, 0,
-      0,     0,     0,     1, 0
-    ]
-  },
-
-  // 蓝黄色盲 (Tritanopia) - 缺少蓝色感受器
-  tritanopia: {
-    name: "蓝黄色盲 (Tritanopia)",
-    matrix: [
-      0.95, 0.05,  0,     0, 0,
-      0,    0.433, 0.567, 0, 0,
-      0,    0.475, 0.525, 0, 0,
-      0,    0,     0,     1, 0
-    ]
-  },
-
-  // 蓝黄色弱 (Tritanomaly)
-  tritanomaly: {
-    name: "蓝黄色弱 (Tritanomaly)",
-    matrix: [
-      0.967, 0.033, 0,     0, 0,
-      0,     0.733, 0.267, 0, 0,
-      0,     0.183, 0.817, 0, 0,
-      0,     0,     0,     1, 0
-    ]
-  },
-
-  // 全色盲 (Achromatopsia) - 增强亮度对比
-  achromatopsia: {
-    name: "全色盲 (Achromatopsia)",
-    matrix: [
-      0.299, 0.587, 0.114, 0, 0,
-      0.299, 0.587, 0.114, 0, 0,
-      0.299, 0.587, 0.114, 0, 0,
-      0,     0,     0,     1, 0
-    ]
-  }
+// ============================================================
+// 模拟矩阵 — 基于 Brettel/Viénot 算法
+// 将正常色域压缩到色盲用户的感知范围，模拟他们看到的世界
+// ============================================================
+const SIMULATION_MATRICES = {
+  protanopia: [
+    0.152286, 1.052583, -0.204868, 0, 0,
+    0.114503, 0.786281,  0.099216, 0, 0,
+   -0.003882, -0.048116, 1.051998, 0, 0,
+    0,         0,         0,       1, 0
+  ],
+  deuteranopia: [
+    0.367322, 0.860646, -0.227968, 0, 0,
+    0.280085, 0.672501,  0.047413, 0, 0,
+   -0.011820, 0.042940,  0.968881, 0, 0,
+    0,        0,         0,        1, 0
+  ],
+  protanomaly: [
+    0.458064, 0.679578, -0.137642, 0, 0,
+    0.092785, 0.846313,  0.060902, 0, 0,
+   -0.007494, -0.016807, 1.024301, 0, 0,
+    0,         0,         0,       1, 0
+  ],
+  deuteranomaly: [
+    0.547494, 0.607765, -0.155259, 0, 0,
+    0.181692, 0.781742,  0.036566, 0, 0,
+   -0.010410, 0.027275,  0.983136, 0, 0,
+    0,        0,         0,        1, 0
+  ],
+  tritanopia: [
+    1.255528, -0.076749, -0.178779, 0, 0,
+   -0.078411,  0.930809,  0.147602, 0, 0,
+    0.004733,  0.691367,  0.303900, 0, 0,
+    0,         0,         0,        1, 0
+  ],
+  tritanomaly: [
+    1.017277, 0.027029, -0.044306, 0, 0,
+   -0.006113, 0.958479,  0.047634, 0, 0,
+    0.006379, 0.248708,  0.744913, 0, 0,
+    0,        0,         0,        1, 0
+  ],
+  achromatopsia: [
+    0.212656, 0.715158, 0.072186, 0, 0,
+    0.212656, 0.715158, 0.072186, 0, 0,
+    0.212656, 0.715158, 0.072186, 0, 0,
+    0,        0,        0,        1, 0
+  ]
 };
 
 // ============================================================
@@ -100,11 +110,7 @@ const CORRECTION_MATRICES = {
 const SVG_FILTER_ID = "cvh-color-filter";
 const SVG_CONTAINER_ID = "cvh-svg-container";
 
-/**
- * 创建或更新 SVG 滤镜元素
- */
 function injectSVGFilter(matrixValues) {
-  // 移除已有的
   const existing = document.getElementById(SVG_CONTAINER_ID);
   if (existing) existing.remove();
 
@@ -129,19 +135,21 @@ function injectSVGFilter(matrixValues) {
 }
 
 /**
- * 应用滤镜到页面
+ * 应用滤镜
+ * @param {string} type - 色盲类型
+ * @param {number} intensity - 强度 0-100
+ * @param {string} mode - "correction" 或 "simulation"
  */
-function applyFilter(type, intensity) {
+function applyFilter(type, intensity, mode) {
   if (!type || type === "none" || intensity === 0) {
     removeFilter();
     return;
   }
 
-  const correction = CORRECTION_MATRICES[type];
-  if (!correction) return;
+  const matrices = (mode === "simulation") ? SIMULATION_MATRICES : CORRECTION_MATRICES;
+  const matrix = matrices[type];
+  if (!matrix) return;
 
-  // 根据强度混合原始矩阵和校正矩阵
-  // identity matrix (无变化)
   const identity = [
     1, 0, 0, 0, 0,
     0, 1, 0, 0, 0,
@@ -150,17 +158,12 @@ function applyFilter(type, intensity) {
   ];
 
   const factor = intensity / 100;
-  const blended = correction.matrix.map((val, i) => {
-    return identity[i] + (val - identity[i]) * factor;
-  });
+  const blended = matrix.map((val, i) => identity[i] + (val - identity[i]) * factor);
 
   injectSVGFilter(blended);
   document.documentElement.style.filter = `url(#${SVG_FILTER_ID})`;
 }
 
-/**
- * 移除滤镜
- */
 function removeFilter() {
   document.documentElement.style.filter = "";
   const existing = document.getElementById(SVG_CONTAINER_ID);
@@ -171,10 +174,9 @@ function removeFilter() {
 // 消息监听 & 状态恢复
 // ============================================================
 
-// 监听来自 popup 的消息
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.action === "applyFilter") {
-    applyFilter(message.type, message.intensity);
+    applyFilter(message.type, message.intensity, message.mode || "correction");
     sendResponse({ success: true });
   } else if (message.action === "removeFilter") {
     removeFilter();
@@ -185,9 +187,8 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   return true;
 });
 
-// 页面加载时恢复上次的设置
-chrome.storage.local.get(["filterType", "intensity", "enabled"], (data) => {
+chrome.storage.local.get(["filterType", "intensity", "enabled", "mode"], (data) => {
   if (data.enabled && data.filterType && data.filterType !== "none") {
-    applyFilter(data.filterType, data.intensity || 80);
+    applyFilter(data.filterType, data.intensity || 80, data.mode || "correction");
   }
 });
