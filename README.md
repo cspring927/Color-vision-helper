@@ -9,7 +9,7 @@
 一款帮助色盲和色弱用户更好地识别网页颜色的 Chrome 浏览器插件。
 
 <p align="center">
-  <img src="screenshot.png" alt="插件截图" width="320">
+  <img src="screenshot-zh.png" alt="插件截图" width="320">
 </p>
 
 ### 功能
@@ -68,7 +68,7 @@
 A Chrome extension that helps people with color vision deficiency browse the web more comfortably.
 
 <p align="center">
-  <img src="screenshot.png" alt="Extension screenshot" width="320">
+  <img src="screenshot-en.png" alt="Extension screenshot" width="320">
 </p>
 
 ### Features
@@ -134,7 +134,8 @@ color-vision-helper/
 │   ├── icon16.png
 │   ├── icon48.png
 │   └── icon128.png
-├── screenshot.png     # Extension screenshot
+├── screenshot-zh.png   # 中文截图 / Chinese screenshot
+├── screenshot-en.png   # 英文截图 / English screenshot
 └── README.md
 ```
 
